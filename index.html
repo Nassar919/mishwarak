@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مشوارك - احسب سعر مشوارك</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12324a">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <h1>احسب سعر مشوارك</h1>
+    <p>حدد مكان التحرك والوجهة على الخريطة، وهنحسبلك المسافة والسعر التقريبي فوراً. مشاوير لكل المحافظات.</p>
+  </div>
+
+  <div class="card">
+    <div id="map"></div>
+    <p class="hint" id="click-hint"></p>
+  </div>
+
+  <div class="card">
+    <div class="swap-row">
+      <strong>نقط المشوار</strong>
+      <span>
+        <button type="button" class="btn-ghost" id="myloc-btn">موقعي الحالي</button>
+        <button type="button" class="btn-ghost" id="swap-btn">تبديل</button>
+        <button type="button" class="btn-ghost" id="clear-btn">مسح</button>
+      </span>
+    </div>
+    <div class="field suggest-wrap">
+      <label for="pickup-input">مكان التحرك</label>
+      <input id="pickup-input" type="text" placeholder="مثال: مدينة نصر، القاهرة" autocomplete="off">
+      <ul id="pickup-suggest" class="suggest hidden"></ul>
+    </div>
+    <div class="field suggest-wrap">
+      <label for="destination-input">الوجهة</label>
+      <input id="destination-input" type="text" placeholder="مثال: الإسكندرية" autocomplete="off">
+      <ul id="destination-suggest" class="suggest hidden"></ul>
+    </div>
+    <div class="field">
+      <label for="wait-select">مدة الانتظار (لو هتحتاج العربية تستناك)</label>
+      <select id="wait-select">
+        <option value="0">بدون انتظار</option>
+        <option value="1">لحد ساعة: 30 جنيه</option>
+        <option value="2">ساعتين: 50 جنيه</option>
+        <option value="3">3 ساعات: 70 جنيه</option>
+        <option value="4">4 ساعات: 90 جنيه</option>
+        <option value="5">5 ساعات: 110 جنيه</option>
+        <option value="6">6 ساعات: 130 جنيه</option>
+      </select>
+    </div>
+    <div id="route-error" class="hidden"></div>
+  </div>
+
+  <div class="card hidden" id="result-card">
+    <div class="result-grid">
+      <div class="result-cell"><div class="v" id="distance-val"></div><div class="k">المسافة بالطريق</div></div>
+      <div class="result-cell"><div class="v" id="duration-val"></div><div class="k">مدة الرحلة تقريباً</div></div>
+      <div class="result-cell fare-cell"><div class="v" id="fare-val"></div><div class="k">السعر التقريبي</div></div>
+    </div>
+    <div class="note" id="fare-breakdown" style="font-weight:700"></div>
+    <div class="note" id="fare-note"></div>
+  </div>
+
+  <div class="card hidden" id="request-card">
+    <h3 style="margin-top:0">اطلب المشوار</h3>
+    <form id="req-form" novalidate>
+      <div id="form-errors" class="errors hidden"></div>
+      <div class="field">
+        <label for="req-name">الاسم</label>
+        <input id="req-name" type="text" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="req-phone">رقم الموبايل</label>
+        <input id="req-phone" type="tel" inputmode="tel" placeholder="01xxxxxxxxx" autocomplete="tel">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="req-date">تاريخ المشوار</label>
+          <input id="req-date" type="date">
+        </div>
+        <div class="field">
+          <label for="req-time">وقت التحرك</label>
+          <input id="req-time" type="time">
+        </div>
+      </div>
+      <div class="field">
+        <label for="req-passengers">عدد الركاب</label>
+        <select id="req-passengers">
+          <option value="">اختار</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="أكتر من 4">أكتر من 4</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit">ابعت الطلب</button>
+      <p class="hint">مفيش أي دفع على الموقع. بنكلمك نأكد الحجز والسعر النهائي بالتليفون أو واتساب.</p>
+    </form>
+  </div>
+
+  <div class="card hidden" id="success-card">
+    <p class="success-title">طلبك اتسجل بنجاح</p>
+    <p class="small">هنتواصل معاك على رقمك في أقرب وقت نأكد المشوار والسعر النهائي.</p>
+    <a class="btn btn-wa" id="wa-link" target="_blank" rel="noopener">ابعتلنا واتساب تأكيد أسرع</a>
+    <a class="btn btn-outline" id="prefill-link" target="_blank" rel="noopener">افتح الطلب في فورم جوجل</a>
+  </div>
+
+</div>
+<iframe name="hidden-submit-frame" style="display:none" title="submit"></iframe>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js');});}</script>
+<div class="wrap" style="padding-top:0"><p class="hint" style="text-align:center"><a href="https://sites.google.com/view/mishwarak">تفاصيل الخدمة على موقع مشوارك</a></p></div>
+</body>
+                                                                           </html>
